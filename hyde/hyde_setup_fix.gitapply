@@ -1,0 +1,22 @@
+diff --git setup.py setup.py
+index 1a0b36d..48ce9b6 100644
+--- setup.py
++++ setup.py
+@@ -115,7 +115,7 @@ setup(name=PROJECT,
+       url='http://hyde.github.com',
+       packages=find_packages(),
+       dependency_links=[
+-        "https://github.com/hyde/typogrify/tarball/hyde-setup#egg=typogrify-hyde"
++        "https://github.com/hyde/typogrify/tarball/hyde-setup#egg=typogrify"
+       ],
+       install_requires=(
+           'argparse',
+@@ -125,7 +125,7 @@ setup(name=PROJECT,
+           'markdown',
+           'smartypants',
+           'pygments',
+-          'typogrify-hyde'
++          'typogrify'
+       ),
+       tests_require=(
+         'nose',
