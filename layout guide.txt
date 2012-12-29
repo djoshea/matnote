@@ -1,0 +1,43 @@
+The default layout is
+~/notebooks
+  - data/ --> data for all notebooks
+     - notebook1/ --> data for notebook1
+       - content
+         - notebook1
+           - index.html --> page index data
+           - page1.html --> page 1 data
+           - page1_figures --> page 1 figures
+           - page2.html --> page 1 data 
+           - page2_figures --> page 2 figures
+      - deploy
+         - notebook1
+           - index.html --> page index generated 
+           - page1.html --> page 1 generated 
+           - page1_figures --> page 1 figures
+           - page2.html --> page 1 generated 
+           - page2_figures --> page 2 figures
+       - layout -> jinja2 layout data for hyde
+     - notebook2/ --> data for notebook2
+       (same as notebook1)
+   - notebookIndex/ --> data for building notebook index site
+     - content
+       - index.html --> notebook index data
+     - layout -> jinja2 layout data for hyde
+     (no deploy, will be deployed into ~/notebooks)
+  
+   (the full html output for viewing in browser)
+   - index.html --> notebook index, generated via hyde gen in ~/notebooks/
+   - notebook1/ --> symlink to ~/notebooks/data/notebook1/deploy/notebook1
+      - index.html --> notebook1 page index
+      - page1.html --> page1 content
+      - page1_figures/ --> page1 figures
+      - page2.html --> page2 content
+      - page2_figures/ --> page2 figures
+   - notebook2/ --> symlink to ~/notebooks/data/notebook2/deploy/notebook2
+      (same as notebook1)
+
+The notebook folders inside ~/notebook/data can be located anywhere, as ultimately
+their deploy folders will be symlinked back to ~/notebooks. By default notebooks 
+are created in defaultPathRoot simply for convenience.
+
+Inside NotebookSettingsStore the following are defined:

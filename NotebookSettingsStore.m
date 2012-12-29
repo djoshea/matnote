@@ -1,9 +1,39 @@
 classdef NotebookSettingsStore < SettingsStore
+% Stores settings for the collection of notebooks located on this system.
+%
+% These notebooks may be located at different paths, but the deployed site
+% folders for each notebook will be symlinked into a commonDeployRoot directory,
+% where an index html file will be generated with links to each notebook.
+% MatNoteTools is responsible for symlinking into commonDeployRoot and generating
+% the index file. 
+%
+%
+% The utility functions provided are used to create and remove notebooks from 
+% the collection. 
+%
+% You should create an instance of this class when first installing MatNote,
+% set the values of the publically settable properties below, and call
+% .saveSettings(path) where path is a folder on the path where the mat file
+% containing the settings will be stored and read.
+%
 
     properties
-        notebookMap 
+        % default folder where new notebook data folders will be created
+        % unless manually overriden when calling createNotebook
+        % This CANNOT be the same as commonDeployRoot as this will lead to naming
+        % collisions
+        defaultPathRoot = '~/notebooks/data';
 
-        defaultPathRoot = '~/notebooks';
+        % common folder where the generated html site with all notebooks within
+        % will be rooted. 
+        % Deployed sites for each notebook will be symlinked inside here
+        % allowing a common access point for all notebooks in this NotebookSettingsStore
+        % at commonDeployRoot/index.html
+        commonDeployRoot = '~/notebooks'
+    end
+
+    properties(Hidden)
+        notebookMap 
     end
 
     properties(Dependent, Transient)
@@ -121,6 +151,7 @@ classdef NotebookSettingsStore < SettingsStore
             end
 
             fprintf('\nDefault path root: %s\n', obj.defaultPathRoot);
+            fprintf('Common deploy root: %s\n', obj.commonDeployRoot);
             fprintf('\n');
         end
     end
