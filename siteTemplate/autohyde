@@ -1,0 +1,65 @@
+#!/bin/bash
+
+ref=.autohyderef
+current=$(basename $PWD)
+
+# echo with prefix
+function e {
+    echo -en "\033[01;34mAutoHyde : \033[00m"
+    echo "$1"
+}
+
+# echo and run growlnotify if installed 
+function eg {
+    if which -s growlnotify; then
+        growlnotify -n AutoHyde -m "$1" AutoHyde
+    fi 
+    e "$1"
+}
+
+# Create a file called $ref if it doesn't exist already
+# We will touch this file whenever we run hyde gen so that
+# we can determine whether any files have been modified
+# since the last hyde gen
+if [ ! -f $ref ];
+then
+    hyde gen
+    touch .autohyderef
+fi
+
+# kill existing hyde servers
+function killhyde() 
+{
+    if jobs -l hyde 2> /dev/null; then
+        e "Killing hyde serve"
+        kill $(jobs -l hyde | awk '{print $2}')
+    fi
+}
+
+# spawn a new server in the background
+killhyde
+e "Launching hyde serve"
+hyde serve &
+
+e "Press Ctrl-C to exit"
+
+# run if user hits control-c
+function control_c()
+{
+    killhyde
+    exit $?
+} 
+trap control_c SIGINT
+
+while :
+do
+    if find . -newer $ref | grep -q -v $ref; then
+        eg "Running hyde gen in $current"
+        #killhyde
+        hyde gen
+        #hyde serve &
+        touch $ref 
+    fi
+    sleep 1
+done
+

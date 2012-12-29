@@ -1,0 +1,35 @@
+{# Notebook page listing template #}
+
+{% extends "base.j2" %}
+
+{% block title %}
+{{ resource.meta.notebook }} 
+{% endblock %}
+
+{% block header %}
+<h1>
+{{ resource.meta.notebook }} <span class="muted">Page Listing</p>
+</h1>
+{% endblock header %}
+
+{% block content %}
+
+{% block pageList %}
+
+<div id="entries">
+    {% for page in resource.meta.pages %}
+    <div class="entry row-fluid">
+        <div class="timestamp span2">
+            {{ page.created }}
+        </div>
+        <div class="body span4">
+            <a href="{{ page.url }}">{{ page.name }}</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% endblock %}
+

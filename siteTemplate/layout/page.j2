@@ -1,0 +1,42 @@
+{# Notebook page template #}
+
+{% extends "base.j2" %}
+
+{% block title %]
+{{ resource.meta.page }} | {{ resource.meta.notebook }}
+{% endblock %]
+
+{% block header %}
+<h1>
+{{ resource.meta.page }} <span class="muted">{{ resource.meta.notebook }}</p>
+</h1>
+{% endblock header %}
+
+{% block content %}
+
+{% block pageEntries %}
+
+<div id="entries">
+    {% for entry in resource.meta.entries %}
+    <div class="entry row-fluid">
+        <div class="timestamp span2">{{ entry.timestamp }}</div>
+        <div class="body span4">
+
+        {% if entry.type == "note" %}
+            {{ entry.text }}
+        {% endif %}
+
+        {% if entry.type == "figure" %}
+            {{ entry.name }}
+            <img class="embedImage" src="{{ entry.embedUrl }}" />
+        {% endif %}
+
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% endblock %}
+
