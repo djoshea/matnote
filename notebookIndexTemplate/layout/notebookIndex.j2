@@ -1,0 +1,32 @@
+{# Notebook index template #}
+
+{% extends "base.j2" %}
+
+{% block title %}
+Notebook Listing
+{% endblock %}
+
+{% block header %}
+<h1>
+MatNote <span class="muted">Notebook Listing</p>
+</h1>
+{% endblock header %}
+
+{% block content %}
+
+{% block notebookList %}
+
+<div id="entries">
+    {% for notebook in resource.meta.notebook %}
+    <div class="entry row-fluid">
+        <div class="body span4">
+            <a href="{{ notebook.url }}">{{ notebook.name }}</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% endblock %}
+
