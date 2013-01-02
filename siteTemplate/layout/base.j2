@@ -40,8 +40,22 @@
 
     {% block body %}
     <div id="wrap">
+
         <!-- Begin page content -->
         <div class="container">
+
+            {% block nav %}
+            <ul class="breadcrumb">
+                <li><a href="../index.html">MatNote</a> <span class="divider">/</span> </li>
+                {% if resource.meta.page %}
+                    <li><a href="index.html">{{ resource.meta.notebook }}</a> <span class="divider">/</span> </li>
+                    <li><span>{{ resource.meta.page }}</span></li>
+                {% else %}
+                    <li><span>{{ resource.meta.notebook }}</span></li>
+                {% endif %}
+            </ul>
+            {% endblock nav %}
+
             <div class="page-header">
                 {% block header %}
                 {% endblock header %}

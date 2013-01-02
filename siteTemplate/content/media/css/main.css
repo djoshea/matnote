@@ -48,7 +48,9 @@ html, body {
 
 .entry .timestamp {
     font-size: 10px;
-    text-align: right;
+    text-align: left;
+    margin-left: 0px;
+    width: 13%;
 }
 
 .entry .body {

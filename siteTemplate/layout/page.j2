@@ -19,7 +19,10 @@
 <div id="entries">
     {% for entry in resource.meta.entries %}
     <div class="entry row-fluid">
-        <div class="timestamp span2">{{ entry.timestamp }}</div>
+        <div class="timestamp span2">
+            <a href="#entry{{ entry.timestamp|replace(" ","_")|replace(":","")|replace(".","") }}">{{ entry.timestamp }}</a>
+            <a id="entry{{ entry.timestamp|replace(" ","_")|replace(":","")|replace(".","") }}"></a>
+        </div>
         <div class="body span10">
         {% if entry.type == "sessionStart" %}
             <span class="label label-info">Session Started</span>
