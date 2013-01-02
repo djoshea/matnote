@@ -13,6 +13,8 @@ classdef MatNote
             end
         end
 
+        % generate everything, but re-initialize all of the hyde sites first
+        % so as to refresh everything with the latest template content
         function update()
             MatNote.initNotebookIndexSite();
             MatNote.generateNotebookIndexSite();
@@ -283,9 +285,13 @@ classdef MatNote
                 fprintf(fid, 'notebooks:\n');
 
                 for i = 1:length(notebookNames)
+                    nb = Notebook(notebookNames{i});
+                    modTs = nb.getLastModified();
+
                     fprintf(fid, '-\n');
                     fprintf(fid, '  name: %s\n', notebookNames{i});
                     fprintf(fid, '  url: %s/index.html\n', notebookNames{i});
+                    fprintf(fid, '  modified: %s\n', datestr(modTs, 'yyyy.mm.dd HH:MM:SS'));
                 end
             end
 

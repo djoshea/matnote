@@ -93,6 +93,14 @@ classdef Notebook < handle
             pages = pages(~exclude);
         end
 
+        % return the datenum timestamp when this notebook was last modified
+        % calculated as the most recent modification date of all pages within
+        function ts = getLastModified(nb)
+            pages = nb.getListPages;
+            tsList = [pages.datenum];
+            ts = max(tsList);
+        end
+
         % get the filename where this notebook's page index is generated
         function file = getFilePageIndex(nb)
             path = nb.contentPath;

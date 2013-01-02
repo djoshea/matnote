@@ -19,6 +19,9 @@ MatNote <span class="muted">Notebook Listing</p>
 <div id="entries">
     {% for notebook in resource.meta.notebooks %}
     <div class="entry row-fluid">
+        <div class="timestamp span2">
+            {{ notebook.modified }}
+        </div>
         <div class="body span4">
             <a href="{{ notebook.url }}">{{ notebook.name }}</a>
         </div>

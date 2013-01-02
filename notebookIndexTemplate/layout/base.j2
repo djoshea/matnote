@@ -43,6 +43,12 @@
 
         <!-- Begin page content -->
         <div class="container">
+            {% block nav %}
+            <ul class="breadcrumb">
+                <li><span>MatNote</span></li>
+            </ul>
+            {% endblock nav %}
+
             <div class="page-header">
                 {% block header %}
                 {% endblock header %}
