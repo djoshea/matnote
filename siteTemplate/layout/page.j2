@@ -2,9 +2,9 @@
 
 {% extends "base.j2" %}
 
-{% block title %]
+{% block title %}
 {{ resource.meta.page }} | {{ resource.meta.notebook }}
-{% endblock %]
+{% endblock title %}
 
 {% block header %}
 <h1>
@@ -20,7 +20,10 @@
     {% for entry in resource.meta.entries %}
     <div class="entry row-fluid">
         <div class="timestamp span2">{{ entry.timestamp }}</div>
-        <div class="body span4">
+        <div class="body span10">
+        {% if entry.type == "sessionStart" %}
+            <span class="label label-info">Session Started</span>
+        {% endif %}
 
         {% if entry.type == "note" %}
             {{ entry.text }}
@@ -28,7 +31,25 @@
 
         {% if entry.type == "figure" %}
             {{ entry.name }}
-            <img class="embedImage" src="{{ entry.embedUrl }}" />
+
+            {# Embed the image as PNG #}
+            {% for figure in entry.figures %}
+                {% if figure.ext == "png" %}
+                    <p>
+                        <img class="figure" src="{{ figure.url }}" alt="{{ entry.name }} as {{ figure.ext }}"/>
+                    </p>
+                {% endif %}
+            {% endfor %}
+            `
+            <p class="muted">{{ entry.caption }}</p>
+
+            {# Link to the other image types #}
+            <p class="credits">
+            {% for figure in entry.figures %}
+                <a href="{{ figure.url }}">{{ figure.ext }}</a>&nbsp;
+            {% endfor %}
+            </p>
+
         {% endif %}
 
         </div>
@@ -36,7 +57,7 @@
     {% endfor %}
 </div>
 
-{% endblock %}
+{% endblock pageEntries %}
 
-{% endblock %}
+{% endblock content %}
 

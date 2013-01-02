@@ -4,9 +4,8 @@ classdef NotebookSettingsStore < SettingsStore
 % These notebooks may be located at different paths, but the deployed site
 % folders for each notebook will be symlinked into a commonDeployRoot directory,
 % where an index html file will be generated with links to each notebook.
-% MatNoteTools is responsible for symlinking into commonDeployRoot and generating
+% MatNote static methods handle symlinking into commonDeployRoot and generating
 % the index file. 
-%
 %
 % The utility functions provided are used to create and remove notebooks from 
 % the collection. 
@@ -22,7 +21,7 @@ classdef NotebookSettingsStore < SettingsStore
         % unless manually overriden when calling createNotebook
         % This CANNOT be the same as commonDeployRoot as this will lead to naming
         % collisions
-        defaultPathRoot = '~/notebooks/data';
+        defaultNotebookDataRoot = '~/notebooks/data';
 
         % common folder where the generated html site with all notebooks within
         % will be rooted. 
@@ -30,6 +29,7 @@ classdef NotebookSettingsStore < SettingsStore
         % allowing a common access point for all notebooks in this NotebookSettingsStore
         % at commonDeployRoot/index.html
         commonDeployRoot = '~/notebooks'
+
     end
 
     properties(Hidden)
@@ -78,7 +78,7 @@ classdef NotebookSettingsStore < SettingsStore
             tf = obj.notebookMap.isKey(name);
         end
 
-        function ns = createNotebook(obj, name, varargin)
+        function nb = createNotebook(obj, name, varargin)
             p = inputParser;
             p.addRequired(name, @(x) ischar(x) && ~isempty(x));
             p.addParamValue('path', '', @ischar);
@@ -87,17 +87,20 @@ classdef NotebookSettingsStore < SettingsStore
             path = p.Results.path;
             if isempty(path)
                 % use default path by appending name onto defaultRootPath
-                path = GetFullPath(fullfile(obj.defaultPathRoot, name));
+                path = GetFullPath(fullfile(obj.defaultNotebookDataRoot, name));
                 fprintf('Using default path %s\n', path);
             end
 
             mkdirRecursive(path);
-            
+
             ns = NotebookSettings();
             ns.name = name;
             ns.path = path;
 
             obj.setNotebook(ns);
+
+            nb = Notebook(name);
+            MatNote.initNotebookSite(nb); 
         end
 
         % add or update the info for notebook with name settings.name
@@ -109,7 +112,7 @@ classdef NotebookSettingsStore < SettingsStore
             name = settings.name;
 
             if obj.hasNotebook(name)
-                fprintf('Warning: overwriting existing notebook settings for %s', name);
+                fprintf('Warning: overwriting existing notebook settings for %s\n', name);
             end
 
             obj.notebookMap(name) = settings;
@@ -132,8 +135,8 @@ classdef NotebookSettingsStore < SettingsStore
             else
                 name = nameOrSettings;
             end
-            if tf.notebookMap.isKey(name)
-                obj.notebookMap.removeKey(name);
+            if obj.notebookMap.isKey(name)
+                obj.notebookMap.remove(name);
             else
                 fprintf('Warning: notebook with name %s not found', name);
             end
@@ -149,10 +152,9 @@ classdef NotebookSettingsStore < SettingsStore
                 settings = obj.getNotebook(name);
                 tcprintf('light blue', '\t%s\n', settings.describe());
             end
-
-            fprintf('\nDefault path root: %s\n', obj.defaultPathRoot);
-            fprintf('Common deploy root: %s\n', obj.commonDeployRoot);
             fprintf('\n');
+
+            disp@SettingsStore(obj);
         end
     end
 end

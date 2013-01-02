@@ -9,6 +9,8 @@ classdef NotebookSettings < handle
 
         % path to store the full path to notebook resources
         path
+
+        figureExtensions = {'png', 'svg', 'fig'};
     end
 
     methods
@@ -17,7 +19,9 @@ classdef NotebookSettings < handle
         end
 
         function disp(ns)
-            fprintf('%s\n\n', ns.describe());
+            tcprintf('light blue', '%s\n', ns.describe());
+
+            disp@handle(ns);
         end
     end
 end

@@ -68,6 +68,71 @@ classdef Notebook < handle
         end
     end
 
+    methods % Hyde generation shortcuts
+        function update(nb)
+            MatNote.initNotebookSite(nb);
+            nb.generate();
+        end
+        
+        function generate(nb)
+            nb.generatePageIndex();
+            MatNote.generateNotebookSite(nb);
+        end
+    end
+
+    methods % Page Index generation
+
+        % list all pages in this notebook
+        function pages = getListPages(nb)
+            % list all pages for this notebook by finding all .html files
+            % in the directory, excluding those below
+            excluded = {'index.html'};
+            search = fullfile(nb.contentPath, '*.html');
+            pages = dir(search);
+            exclude = ismember({pages.name}, excluded);
+            pages = pages(~exclude);
+        end
+
+        % get the filename where this notebook's page index is generated
+        function file = getFilePageIndex(nb)
+            path = nb.contentPath;
+            file = fullfile(path, 'index.html');
+        end
+
+        % generate the notebook's page index file
+        function generatePageIndex(nb)
+            fname = nb.getFilePageIndex();
+            debug('Generating page index at %s\n', fname);
+
+            pages = nb.getListPages();
+
+            fid = fopen(fname, 'w');
+            if fid == -1
+                error('Could not open file %s\n', fname);
+            end
+
+            fprintf(fid, '---\n');
+            fprintf(fid, 'extends: notebook.j2\n');
+            fprintf(fid, 'notebook: %s\n', nb.name);
+
+            % print list of pages as yaml array
+            if ~isempty(pages)
+                fprintf(fid, 'pages:\n');
+
+                for i = 1:length(pages)
+                    page = pages(i);
+                    [~, nameNoExt] = fileparts(page.name);
+                    fprintf(fid, '  - name: %s\n', nameNoExt);
+                    fprintf(fid, '    url: %s\n', page.name);
+                    fprintf(fid, '    modified: %s\n', datestr(page.datenum));
+                end
+            end
+
+            fprintf(fid, '---');
+            fclose(fid);
+        end
+    end
+
     methods % Page switching and initialization
         % this is called whenever you write to a notebook before calling setPage
         function setPageDefault(nb)
@@ -84,6 +149,8 @@ classdef Notebook < handle
         % use a page with a specific topical name
         % if the page exists already, it will be appended on to
         function setPage(nb, name)
+            oldPage = nb.pageCurrent;
+
             nb.pageCurrent = name;
 
             % check whether file already exists for status message
@@ -96,24 +163,19 @@ classdef Notebook < handle
             debug('Current page is %s at %s%s\n', nb.pageCurrent, file, appendStr);
 
             % generate yaml file in case it doesn't exist
-            nb.createPageYaml();
-            nb.writeSessionStart();
-            
-            % generate html file which references yaml file
-            nb.writePageHtml();
+            if ~exist(file, 'file')
+                nb.createPageYaml();
+                
+                % make figures folder
+                mkdirRecursive(nb.getPathFigures());
+            end
 
-            % make figures folder
-            mkdirRecursive(nb.getPathFigures());
+            nb.writeSessionStart();
         end
     end
     
     methods % Page-relative directory and file lookup
         function fname = getFilePageYaml(nb)
-            file = sprintf('%s.data.yaml', nb.pageCurrent);
-            fname = fullfile(nb.contentPath, file);
-        end
-
-        function fname = getFilePageHtml(nb)
             file = sprintf('%s.html', nb.pageCurrent);
             fname = fullfile(nb.contentPath, file);
         end
@@ -130,27 +192,29 @@ classdef Notebook < handle
             path = fullfile(nb.contentPath, relPath);
         end
 
-
         function createPageYaml(nb)
             fnamePageYaml = nb.getFilePageYaml();
-            fhPageYaml = fopen(fnamePageYaml, 'a');
-            if fhPageYaml == -1
-                error('Could not open file %s', fhPageYaml);
+            if exist(fnamePageYaml, 'file')
+                return;
             end
-            fclose(fhPageYaml);
-        end
-
-        function writePageHtml(nb)
-            fnamePageHtml = nb.getFilePageHtml();
-            fhPageHtml = fopen(fnamePageHtml, 'w');
-            if fhPageHtml == -1
-                error('Could not open file %s', fhPageHtml);
+            debug('Creating page at %s\n', fnamePageYaml);
+            fid = fopen(fnamePageYaml, 'w');
+            if fid == -1
+                error('Could not open file %s', fid);
             end
 
-            % TODO write the html file here!
-            
-            fclose(fhPageHtml);
+            % write header to page yaml
+            fprintf(fid, '---\n');
+            fprintf(fid, 'extends: page.j2\n');
+            fprintf(fid, 'notebook: %s\n', nb.name);
+            fprintf(fid, 'page: %s\n', nb.pageCurrent);
+            fprintf(fid, 'created: %s\n', datestr(now, 'yyyy.mm.dd HH:MM:SS'));
+            fprintf(fid, 'entries:\n');
+            fprintf(fid, '---\n');
+
+            fclose(fid);
         end
+
     end
 
     methods % Write generic entry to current page
@@ -158,11 +222,53 @@ classdef Notebook < handle
             if isempty(nb.pageCurrent)
                 nb.setPageDefault();
             end
+            if ~isfield(data, 'timestamp')
+                data.timestamp = datestr(now, 'yyyy.mm.dd HH:MM:SS');
+            end
 
+            % check for yaml file for page, initialize it if missing
             fname = nb.getFilePageYaml();
-            data.timestamp = datestr(now, 'yyyy.mm.dd HH:MM:SS');
+            if ~exist(fname, 'file')
+                nb.createPageYaml();
+            end
+
+            % remove --- at end of file so we can append new yaml data
+            MatNote.removeTrailingDashes(fname);
+
+            % open yaml file for page
+            fid = fopen(fname, 'a');
+            if fid == -1
+                error('Could not open file %s', fname);
+            end
+
+            % write new yaml data for entry, use WriteYaml to handle escaping, nesting, etc.
+            % write struct as another element of the entries array
+            yamlText = char(WriteYaml('', data));
             
-            WriteYaml(fname, data, 0, 'append', true);
+            NEWLINE = char(10);
+            wroteDash = false;
+            remain = yamlText;
+            while ~isempty(strtrim(remain)) && ...
+                  ~strcmp(strtrim(remain), NEWLINE)
+                [token remain] = strtok(remain, NEWLINE);
+                if remain(1) == NEWLINE
+                    remain = remain(2:end);
+                end
+                if wroteDash
+                    prefix = '  ';
+                else
+                    prefix = '- ';
+                    wroteDash = true;
+                end
+                
+                fprintf(fid, '%s%s\n', prefix, token);
+                
+                if isempty(remain)
+                    break;
+                end
+            end
+            fprintf(fid, '---');
+            fclose(fid);
         end
 
         function writeSessionStart(nb)
@@ -172,14 +278,24 @@ classdef Notebook < handle
     end
 
     methods % Write entry shortcuts
-        function writeSection(nb, name, varargin)
+        function writeSection(nb, name, subtitle)
+            if nargin < 2
+                name = input('Section name: ', 's');
+            end
+            if nargin < 3
+                subtitle = input('Section subtitle: ', 's');
+            end
             data.type = 'section';
             data.name = name;
+            data.subtitle = subtitle;
 
             nb.writeEntry(data);
         end
 
         function writeNote(nb, text) 
+            if nargin < 2 
+                text = input('Note text: ', 's');
+            end
             data.type = 'note';
             data.text = text;
 
@@ -206,12 +322,17 @@ classdef Notebook < handle
                 end
 
                 if isempty(name)
-                    error('Please provide figure name as writeFigure(hFig, name) or give the plot a title()');
+                    name = input('Figure name: ', 's');
                 end
             end
 
             if isempty(caption)
                 caption = input('Figure caption (optional): ', 's');
+            end
+
+            % have to set a page now in order to save the figures in the right place
+            if isempty(nb.pageCurrent)
+                nb.setPageDefault();
             end
 
             % extensions
@@ -221,21 +342,13 @@ classdef Notebook < handle
             % directory where to place the figures
             relPath = nb.getContentRelativePathFigures();
             figPath = nb.getPathFigures();
-
-            relFileList = cell(nExts, 1);
-
-            % numerical suffix to append to name
             suffixNum = 0;
-
-            % first build up the list of figure names
-            % check for existence, first with no suffix, then with an increasing
-            % numerical suffix
-            while true
+            while true 
                 success = false(nExts, 1);
                 if suffixNum == 0
                     suffixStr = '';
                 else
-                    suffixStr = sprintf('_%03d', suffix);
+                    suffixStr = sprintf('_%03d', suffixNum);
                 end
 
                 for i = 1:nExts
@@ -248,7 +361,7 @@ classdef Notebook < handle
 
                     if exist(fileList{i}, 'file')
                         % increment the numerical suffix and try again
-                        suffix = suffix + 1;
+                        suffixNum = suffixNum + 1;
                         break;
                     end
                 end
@@ -263,6 +376,7 @@ classdef Notebook < handle
             for i = 1:nExts
                 ext = exts{i};
                 fileName = fileList{i};
+                debug('Saving figure as %s\n', fileName);
                 switch ext
                     case 'fig'
                         try 
@@ -298,7 +412,7 @@ classdef Notebook < handle
             for i = 1:nExts
                 ext = exts{i};
                 % relative path to file
-                figures(i).relFile = relFileList{i};
+                figures(i).url = relFileList{i};
                 % is this the image file to embed?
                 figures(i).ext = ext;
             end
