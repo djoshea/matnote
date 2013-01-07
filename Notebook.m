@@ -313,8 +313,8 @@ classdef Notebook < handle
         function writeFigure(nb, varargin)
             p = inputParser;
             p.addOptional('hFig', gcf, @ishandle);
-            p.addParamValue('name', '', @ischar);
-            p.addParamValue('caption', '', @ischar);
+            p.addOptional('name', '', @ischar);
+            p.addOptional('caption', '', @ischar);
             p.parse(varargin{:});
 
             hFig = p.Results.hFig;
@@ -406,12 +406,16 @@ classdef Notebook < handle
                         end
                     otherwise 
                         try
-                            exportfig(hFig, fileName, 'format', ext, 'resolution', 300);
+                            exportfig(hFig, fileName, 'format', ext, 'resolution', 72);
                             success(i) = true;
                         catch exc
-                            tcprintf('light red', 'WARNING: Error saving to %s', ext);
-                            tcprintf('light red', exc.getReport());
-                            fprintf('\n');
+                            try
+                                saveas(hFig, fileName);
+                            catch exc
+                                tcprintf('light red', 'WARNING: Error saving to %s', ext);
+                                tcprintf('light red', exc.getReport());
+                                fprintf('\n');
+                            end
                         end
                 end
             end
