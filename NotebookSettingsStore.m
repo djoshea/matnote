@@ -98,6 +98,7 @@ classdef NotebookSettingsStore < SettingsStore
             ns.path = path;
 
             obj.setNotebook(ns);
+            obj.saveSettings();
 
             nb = Notebook(name);
             MatNote.initNotebookSite(nb); 
