@@ -325,7 +325,7 @@ classdef MatNote
     methods(Static) % Miscellaneous utilities 
         function removeTrailingDashes(fname)
             scriptName = fullfile(pathToThisFile(), 'removeTrailingDashes.sh');
-            cmd = sprintf('sh "%s" "%s"', scriptName, fname);
+            cmd = sprintf('sh %s %s', escapePathForShell(scriptName), escapePathForShell(fname));
             %debug('Running %s\n', cmd);
             system(cmd);
         end 
