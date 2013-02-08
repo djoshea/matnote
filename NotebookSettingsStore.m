@@ -151,7 +151,8 @@ classdef NotebookSettingsStore < SettingsStore
             for i = 1:nNotebooks
                 name = list{i};
                 settings = obj.getNotebook(name);
-                tcprintf('light blue', '\t%s\n', settings.describe());
+                tcprintf('inline', '\tNotebook {yellow}%s{none} at {yellow}%s\n', ...
+                    settings.name, settings.path);
             end
             fprintf('\n');
 

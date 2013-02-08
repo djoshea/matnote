@@ -136,24 +136,37 @@ classdef MatNote
             fprintf('Install or adjust settings interactively: \n');
             tcprintf('light blue', '\tMatNote.install()\n');
 
+            fprintf('List notebooks: \n');
+            tcprintf('light blue', '\tMatNote.listNotebooks()\n');
+
             fprintf('Create a new notebook: \n');
-            tcprintf('light blue', '\tMatNote.createNotebook(name)\n');
+            tcprintf('light blue', '\tnb = MatNote.createNotebook(name)\n');
 
             fprintf('Create a new page in a notebook: \n');
             tcprintf('light blue', '\tnb = Notebook(name);\n');
             tcprintf('light blue', '\tnb.setPage(pageName);');
             fprintf(' %% topical page by name\n');
-            tcprintf('light blue', '\tnb.setPageToday(pageName);');
+            tcprintf('light blue', '\tnb.setPageToday();');
             fprintf(' %% page named by today''s date\n');
 
             fprintf('Create a new note in a notebook page: \n');
-            tcprintf('light blue', '\tnb.writeSection(sectionName, subtitle);\n');
+            tcprintf('light blue', '\tnb.writeSection(sectionName, subtitle);');
+            fprintf(' %% omit args for interactive mode\n');
             tcprintf('light blue', '\tnb.writeNote(noteText);\n');
             tcprintf('light blue', '\tnb.writeFigure(figH, figName);\n');
 
+            fprintf('Generate html site including all notebooks: \n');
+            tcprintf('light blue', '\tMatNote.generate()\n');
+
+            fprintf('View html site root in browser: \n');
+            tcprintf('light blue', '\tMatNote.view()\n');
+
             fprintf('Access MatNote settings:\n');
             tcprintf('light blue', '\tnss = NotebookSettingsStore();\n');
-            tcprintf('light blue', '\tnss.commonDeployRoot = ''/path/to/newRoot'';\n');
+            tcprintf('light blue', '\tnss.defaultNotebookDataRoot = ''/path/to/dataRoot'';');
+            fprintf(' %% where notebook data will be stored\n');
+            tcprintf('light blue', '\tnss.commonDeployRoot = ''/path/to/deployRoot'';');
+            fprintf(' %% where generated html will be accessible\n');
             tcprintf('light blue', '\tnss.saveSettings()\n');
             fprintf('\n');
         end
@@ -176,6 +189,12 @@ classdef MatNote
             nss = NotebookSettingsStore();
             names = nss.getListNotebooks(varargin{:});
             nss.saveSettings();
+        end
+    end
+
+    methods % Null constructor to call help()
+        function obj = MatNote()
+            obj.help();
         end
     end
 
