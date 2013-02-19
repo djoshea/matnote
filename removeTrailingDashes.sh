@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TMPFILE=`mktemp -t awktemp`
+TMPFILE=`mktemp -t awktemp.XXX`
 awk '
   $1=="---" {c++}
   c==2 {exit}
