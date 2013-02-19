@@ -380,43 +380,61 @@ classdef Notebook < handle
             end
 
             % now that we've determined the suffixStr, save figure as extensions
-            success = false(nExts, 1);
-            for i = 1:nExts
-                ext = exts{i};
-                fileName = fileList{i};
-                debug('Saving figure as %s\n', fileName);
-                switch ext
-                    case 'fig'
-                        try 
-                            saveas(hFig, fileName);
-                            success(i) = true;
-                        catch exc
-                            tcprintf('light red', 'WARNING: Error saving as fig\n');
-                            tcprintf('light red', exc.getReport());
-                            fprintf('\n');
-                        end
-                    case 'svg'
-                        try
-                            plot2svg(fileName, hFig);
-                            success(i) = true;
-                        catch exc
-                            tcprintf('light red', 'WARNING: Error saving to svg\n');
-                            tcprintf('light red', exc.getReport());
-                            fprintf('\n');
-                        end
-                    otherwise 
-                        try
-                            exportfig(hFig, fileName, 'format', ext, 'resolution', 72);
-                            success(i) = true;
-                        catch exc
-                            try
+            
+            useOld = false;
+
+            if ~useOld
+                % grab the string describing the function to call to save figure as multiple extensions
+                figSaveFuncStr = nb.settings.figureSaveFuncStr;
+
+
+                fn = str2func(figSaveFuncStr);
+                
+                % call the function with all of the extensions and filenames
+                fn(hFig, fileList, exts);
+                success = true(nExts, 1);
+            end
+
+            % not used anymore, TODO delete this
+            if useOld
+                success = false(nExts, 1);
+                for i = 1:nExts
+                    ext = exts{i};
+                    fileName = fileList{i};
+                    debug('Saving figure as %s\n', fileName);
+                    switch ext
+                        case 'fig'
+                            try 
                                 saveas(hFig, fileName);
+                                success(i) = true;
                             catch exc
-                                tcprintf('light red', 'WARNING: Error saving to %s', ext);
+                                tcprintf('light red', 'WARNING: Error saving as fig\n');
                                 tcprintf('light red', exc.getReport());
                                 fprintf('\n');
                             end
-                        end
+                        case 'svg'
+                            try
+                                plot2svg(fileName, hFig);
+                                success(i) = true;
+                            catch exc
+                                tcprintf('light red', 'WARNING: Error saving to svg\n');
+                                tcprintf('light red', exc.getReport());
+                                fprintf('\n');
+                            end
+                        otherwise 
+                            try
+                                exportfig(hFig, fileName, 'format', ext, 'resolution', 72);
+                                success(i) = true;
+                            catch exc
+                                try
+                                    saveas(hFig, fileName);
+                                catch exc
+                                    tcprintf('light red', 'WARNING: Error saving to %s', ext);
+                                    tcprintf('light red', exc.getReport());
+                                    fprintf('\n');
+                                end
+                            end
+                    end
                 end
             end
 

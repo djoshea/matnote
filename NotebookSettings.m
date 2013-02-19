@@ -10,7 +10,9 @@ classdef NotebookSettings < handle
         % path to store the full path to notebook resources
         path
 
-        figureExtensions = {'png', 'svg', 'fig'};
+        figureExtensions = {'fig', 'png', 'hires.png', 'svg', 'eps', 'pdf'};
+
+        figureSaveFuncStr = 'saveFigure';
     end
 
     methods

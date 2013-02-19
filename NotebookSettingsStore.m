@@ -78,7 +78,7 @@ classdef NotebookSettingsStore < SettingsStore
             tf = obj.notebookMap.isKey(name);
         end
 
-        function nb = createNotebook(obj, name, varargin)
+        function ns = createNotebook(obj, name, varargin)
             p = inputParser;
             p.addRequired(name, @(x) ischar(x) && ~isempty(x));
             p.addParamValue('path', '', @ischar);
@@ -92,16 +92,12 @@ classdef NotebookSettingsStore < SettingsStore
             end
 
             mkdirRecursive(path);
-
+            
             ns = NotebookSettings();
             ns.name = name;
             ns.path = path;
 
             obj.setNotebook(ns);
-            obj.saveSettings();
-
-            nb = Notebook(name);
-            MatNote.initNotebookSite(nb); 
         end
 
         % add or update the info for notebook with name settings.name
@@ -151,8 +147,7 @@ classdef NotebookSettingsStore < SettingsStore
             for i = 1:nNotebooks
                 name = list{i};
                 settings = obj.getNotebook(name);
-                tcprintf('inline', '\tNotebook {yellow}%s{none} at {yellow}%s\n', ...
-                    settings.name, settings.path);
+                tcprintf('light blue', '\t%s\n', settings.describe());
             end
             fprintf('\n');
 
